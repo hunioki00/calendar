@@ -163,7 +163,7 @@
       position:fixed;left:50%;transform:translateX(-50%);
       bottom:14px;width:min(460px, calc(100% - 24px));
       background:#fff;border:1px solid #eee;border-radius:18px;
-      display:grid;grid-template-columns:1fr 1fr 1fr; /* ✅ 3탭으로 변경 */
+      display:grid;grid-template-columns:1fr 1fr 1fr;
       box-shadow:0 18px 40px rgba(0,0,0,.12);
       z-index:65;overflow:hidden
     }
@@ -193,7 +193,7 @@
     .catBar{margin-top:8px;height:10px;border-radius:999px;background:#f3f3f7;overflow:hidden}
     .catFill{height:100%;background:rgba(255,79,163,.65);border-radius:999px}
 
-    /* ✅ 월별 리포트 영수증 모달 (연핑크 배경) */
+    /* ✅ 월별 리포트 영수증 모달 */
     .mReportBg{
       position:fixed;inset:0;background:rgba(0,0,0,.38);
       display:none;align-items:center;justify-content:center;
@@ -216,7 +216,7 @@
     .mVal{font-weight:1000}
     .mHint{margin-top:8px;font-size:11px;color:#888}
 
-    /* ✅ 버킷리스트 UI(HTML만: 동작 X) */
+    /* ✅ 버킷리스트 UI */
     .bucketHead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
     .bucketTitle{font-weight:1000;font-size:18px;margin:0}
     .bucketSub{font-size:12px;color:#888;font-weight:900}
@@ -224,15 +224,21 @@
     .bucketAdd input{flex:1;border-radius:18px;padding:14px 14px;border:1px solid #eee;background:#fff}
     .bucketAdd button{border:0;background:var(--p);color:#fff;border-radius:18px;padding:14px 16px;font-weight:1000;min-width:74px}
     .bucketList{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+
+    /* ✅ 버킷리스트 row (동작 포함용) */
     .bRow{border:1px solid #eee;border-radius:18px;padding:14px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
-    .bLeft{display:flex;gap:12px;align-items:flex-start;min-width:0}
-    .bChk{width:24px;height:24px;border:2px solid #777;border-radius:4px;flex:0 0 auto;margin-top:4px}
+    .bLeft{display:flex;gap:12px;align-items:flex-start;min-width:0;flex:1}
+    .bChk{width:24px;height:24px;border:2px solid #777;border-radius:6px;flex:0 0 auto;margin-top:4px;display:flex;align-items:center;justify-content:center;font-weight:1100}
+    .bChk.on{border-color:var(--p);background:rgba(255,79,163,.12);color:var(--p)}
     .bTxt{min-width:0}
-    .bName{font-weight:1000;margin:0}
-    .bHint{margin:4px 0 0;color:#777;font-size:13px;font-weight:800}
+    .bName{font-weight:1000;margin:0;word-break:break-word}
+    .bName.done{text-decoration:line-through;color:#999}
+    .bHint{margin:4px 0 0;color:#777;font-size:13px;font-weight:800;word-break:break-word}
+    .bHint.done{color:#aaa;text-decoration:line-through}
     .bRight{display:flex;flex-direction:column;gap:10px;align-items:flex-end;flex:0 0 auto}
     .bPhotoBtn{border:1px solid #ffd0e6;background:#fff;color:#ff4fa3;border-radius:999px;padding:10px 14px;font-weight:1000}
     .bDel{border:0;background:transparent;color:#999;font-weight:900}
+    .bThumb{width:56px;height:56px;border-radius:14px;object-fit:cover;border:1px solid #eee;cursor:pointer}
     .bucketFoot{margin-top:10px;color:#999;font-size:12px;font-weight:900;line-height:1.4}
   </style>
 </head>
@@ -358,6 +364,7 @@
         </section>
       </div>
 
+      <!-- ✅ TAB 3: 버킷 -->
       <div id="tabBucket" style="display:none;">
         <section class="card">
           <div class="bucketHead">
@@ -370,8 +377,7 @@
             <button type="button" onclick="addBucket()">추가</button>
           </div>
 
-          <div id="bucketList" class="bucketList">
-            </div>
+          <div id="bucketList" class="bucketList"></div>
 
           <div class="bucketFoot">
             * 항목을 누르면 완료 체크(취소선)가 됩니다. <br>
@@ -633,6 +639,9 @@
     const SET_KEY="couple_settings_v1";
     const AREA_KEY="couple_area_list_v1";
 
+    // ✅ 버킷리스트 저장키
+    const BUCKET_KEY="couple_bucket_v1";
+
     const TAGS = ["식사","카페","교통","문화","쇼핑","기타"];
 
     let logs = JSON.parse(localStorage.getItem(LOG_KEY) || "[]");
@@ -659,6 +668,9 @@
     let editingId = null;
     let currentPhotos = [];
 
+    // ✅ 버킷리스트 데이터
+    let buckets = JSON.parse(localStorage.getItem(BUCKET_KEY) || "[]");
+
     // Intro
     const hideIntro = localStorage.getItem(INTRO_KEY)==="1";
     if(hideIntro){
@@ -680,7 +692,7 @@
     // Tabs
     $("#tabBtnCal").onclick=()=>setTab("cal");
     $("#tabBtnAna").onclick=()=>setTab("ana");
-    $("#tabBtnBucket").onclick=()=>setTab("bucket");
+    $("#tabBtnBucket").onclick=()=>{ setTab("bucket"); renderBucket(); };
 
     function setTab(which){
       const cal = $("#tabCalendar");
@@ -691,7 +703,6 @@
       const b2 = $("#tabBtnAna");
       const b3 = $("#tabBtnBucket");
 
-      // reset
       cal.style.display="none";
       ana.style.display="none";
       buc.style.display="none";
@@ -720,7 +731,6 @@
     function escapeHtml(s){ return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
     const onlyDigits = (v)=> (v||"").replace(/[^\d]/g,"");
     const comma = (digits)=> digits ? digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
-     
 
     function getLogPhotos(x){
       if(Array.isArray(x.photos)) return x.photos;
@@ -747,6 +757,7 @@
       localStorage.setItem(LOG_KEY, JSON.stringify(logs));
       localStorage.setItem(SET_KEY, JSON.stringify(settings));
       localStorage.setItem(AREA_KEY, JSON.stringify(areaList));
+      localStorage.setItem(BUCKET_KEY, JSON.stringify(buckets));
     }
 
     function renderAreasSelect(){
@@ -777,7 +788,6 @@
       const total = monthLogs.reduce((a,x)=>a+getLogCost(x),0);
       const meet = uniqueDays(monthLogs);
 
-      // 카테고리 TOP
       const sumBy = {};
       TAGS.forEach(t=>sumBy[t]=0);
       monthLogs.forEach(log=>{
@@ -800,12 +810,8 @@
 
       $("#mReportBg").style.display = "flex";
     }
-    function closeMonthReport(){
-      $("#mReportBg").style.display = "none";
-    }
-    $("#mReportBg").addEventListener("click",(e)=>{
-      if(e.target.id==="mReportBg") closeMonthReport();
-    });
+    function closeMonthReport(){ $("#mReportBg").style.display = "none"; }
+    $("#mReportBg").addEventListener("click",(e)=>{ if(e.target.id==="mReportBg") closeMonthReport(); });
 
     function renderYearGraph(year){
       const sums = Array.from({length:12}, ()=>0);
@@ -834,7 +840,7 @@
       });
 
       const poly = pts.map(p=>p.join(",")).join(" ");
-      const circles = pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.4" fill="var(--p)"></circle>`).join("");
+      const circles = pts.map((p)=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.4" fill="var(--p)"></circle>`).join("");
       const bars = sums.map((v,i)=>{
         const x=padL+stepX*i-6, h=(v/top)*innerH, y=padT+innerH-h;
         return `<rect x="${x}" y="${y}" width="12" height="${h}" rx="6" fill="rgba(255,79,163,.16)"></rect>`;
@@ -861,7 +867,6 @@
         <text x="${padL-10}" y="${yBot+4}" text-anchor="end" font-size="11.5" fill="#777" font-weight="1000">0</text>
       `;
 
-      // ✅ 월 클릭 영역(투명) — 1~12월 각각 클릭 가능
       const hitRects = sums.map((_,i)=>{
         const x0 = (i===0) ? padL- stepX/2 : (padL + stepX*i - stepX/2);
         const w  = stepX;
@@ -883,7 +888,6 @@
           ${hitRects}
         </svg>`;
 
-      // ✅ 클릭 이벤트(월간 리포트 오픈)
       const svg = $("#yearGraphSvg");
       svg.onclick = (e)=>{
         const t = e.target;
@@ -1129,18 +1133,59 @@
     $("#pm").onclick=()=>{ view.setMonth(view.getMonth()-1); render(); renderAnalytics(); };
     $("#nm").onclick=()=>{ view.setMonth(view.getMonth()+1); render(); renderAnalytics(); };
 
+    // =========================
+    // ✅ 모바일 사진 업로드 해결: 자동 압축/리사이즈
+    // =========================
+    async function fileToDataURL(file){
+      return new Promise((res,rej)=>{
+        const r=new FileReader();
+        r.onload=()=>res(r.result);
+        r.onerror=rej;
+        r.readAsDataURL(file);
+      });
+    }
+
+    async function compressImageFile(file, maxW=1280, quality=0.82){
+      const src = await fileToDataURL(file);
+      const img = new Image();
+      img.src = src;
+      await new Promise((ok, no)=>{ img.onload=ok; img.onerror=no; });
+
+      const w = img.naturalWidth || img.width;
+      const h = img.naturalHeight || img.height;
+      if(!w || !h) return src;
+
+      const scale = Math.min(1, maxW / w);
+      const tw = Math.max(1, Math.round(w * scale));
+      const th = Math.max(1, Math.round(h * scale));
+
+      const canvas = document.createElement("canvas");
+      canvas.width = tw;
+      canvas.height = th;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, tw, th);
+
+      // jpeg로 저장해서 용량 낮춤
+      const out = canvas.toDataURL("image/jpeg", quality);
+      return out;
+    }
+
     $("#fPhoto").addEventListener("change", async (e)=>{
       const files = Array.from(e.target.files || []);
       if(!files.length) return;
+
       for(const file of files){
-        if(file.size > 1.2*1024*1024){
-          alert("사진 용량이 커요! 1.2MB 이하 사진만 올려주세요.");
-          continue;
+        try{
+          // ✅ 아이폰 고용량 사진도 자동 압축
+          const dataUrl = await compressImageFile(file, 1280, 0.82);
+          currentPhotos.push(dataUrl);
+        }catch(err){
+          alert("사진 업로드에 실패했어요. 다른 사진으로 다시 시도해줘!");
         }
-        const dataUrl = await fileToDataURL(file);
-        currentPhotos.push(dataUrl);
       }
       renderPhotoStrip();
+      // ✅ 같은 사진 다시 선택 가능하도록 초기화
+      $("#fPhoto").value = "";
     });
 
     function renderPhotoStrip(){
@@ -1165,15 +1210,6 @@
           currentPhotos.splice(i,1);
           renderPhotoStrip();
         };
-      });
-    }
-
-    function fileToDataURL(file){
-      return new Promise((res,rej)=>{
-        const r=new FileReader();
-        r.onload=()=>res(r.result);
-        r.onerror=rej;
-        r.readAsDataURL(file);
       });
     }
 
@@ -1355,12 +1391,144 @@
       settings.optHideCost = $("#optHideCost").checked;
       persist(); render(); closeDrawer();
     };
-    
+
+    // =========================
+    // ✅ 버킷리스트: 추가/체크/삭제/사진등록
+    // =========================
+    function renderBucket(){
+      const list = $("#bucketList");
+      if(!list) return;
+
+      // 최신순
+      const arr = [...buckets].sort((a,b)=>b.id-a.id);
+
+      list.innerHTML = arr.map(b=>{
+        const done = !!b.done;
+        const chk = done ? "on" : "";
+        const nameCls = done ? "done" : "";
+        const hint = b.note ? escapeHtml(b.note) : "탭해서 완료 체크하기";
+        const hintCls = done ? "done" : "";
+        const thumb = b.photo ? `<img class="bThumb" data-bimg="${b.id}" src="${b.photo}" alt="버킷 사진">` : "";
+        return `
+          <div class="bRow" data-brow="${b.id}">
+            <div class="bLeft">
+              <div class="bChk ${chk}" data-btoggle="${b.id}">${done ? "✓" : ""}</div>
+              <div class="bTxt">
+                <p class="bName ${nameCls}">${escapeHtml(b.text)}</p>
+                <p class="bHint ${hintCls}">${hint}</p>
+              </div>
+            </div>
+
+            <div class="bRight">
+              ${thumb}
+              <button class="bPhotoBtn" type="button" data-bphoto="${b.id}">사진</button>
+              <button class="bDel" type="button" data-bdel="${b.id}">삭제</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // 이벤트 위임
+      list.onclick = async (e)=>{
+        const t = e.target;
+
+        // 완료 토글
+        const tid = t?.getAttribute?.("data-btoggle");
+        if(tid){
+          const id = +tid;
+          const idx = buckets.findIndex(x=>x.id===id);
+          if(idx>-1){
+            buckets[idx].done = !buckets[idx].done;
+            persist();
+            renderBucket();
+          }
+          return;
+        }
+
+        // 삭제
+        const did = t?.getAttribute?.("data-bdel");
+        if(did){
+          const id = +did;
+          buckets = buckets.filter(x=>x.id!==id);
+          persist();
+          renderBucket();
+          return;
+        }
+
+        // 사진 추가
+        const pid = t?.getAttribute?.("data-bphoto");
+        if(pid){
+          const id = +pid;
+          const file = await pickOneImage();
+          if(!file) return;
+          try{
+            const dataUrl = await compressImageFile(file, 1280, 0.82);
+            const idx = buckets.findIndex(x=>x.id===id);
+            if(idx>-1){
+              buckets[idx].photo = dataUrl;
+              persist();
+              renderBucket();
+            }
+          }catch(err){
+            alert("사진 등록에 실패했어요. 다른 사진으로 다시 시도해줘!");
+          }
+          return;
+        }
+
+        // 썸네일 클릭하면 크게 보기(기존 모달 사용)
+        const imgId = t?.getAttribute?.("data-bimg");
+        if(imgId){
+          const id = +imgId;
+          const b = buckets.find(x=>x.id===id);
+          if(b?.photo){
+            $("#imgView").src = b.photo;
+            $("#imgBg").style.display="flex";
+          }
+          return;
+        }
+      };
+    }
+
+    async function pickOneImage(){
+      // iOS에서도 안정적으로 동작: 사용자 클릭 이벤트 안에서 input 생성
+      return new Promise((resolve)=>{
+        const inp = document.createElement("input");
+        inp.type = "file";
+        inp.accept = "image/*";
+        inp.onchange = ()=> resolve((inp.files && inp.files[0]) ? inp.files[0] : null);
+        inp.click();
+      });
+    }
+
+    // ✅ HTML에서 onclick="addBucket()" 쓰고 있으니 전역으로 노출
+    window.addBucket = function addBucket(){
+      const input = $("#bucketIn");
+      const txt = (input.value || "").trim();
+      if(!txt) return;
+      buckets.push({
+        id: Date.now(),
+        text: txt,
+        done: false,
+        note: "",
+        photo: ""
+      });
+      input.value = "";
+      persist();
+      renderBucket();
+    };
+
+    // 엔터로도 추가
+    $("#bucketIn").addEventListener("keydown",(e)=>{
+      if(e.key==="Enter"){
+        e.preventDefault();
+        window.addBucket();
+      }
+    });
 
     // init
     render();
     renderAnalytics();
-    
+    renderBucket();
   </script>
 </body>
 </html>
