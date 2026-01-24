@@ -1,0 +1,1366 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DATE RECEIPT</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    :root{--p:#ff4fa3;--b:#111;--g:#f4f4f6}
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+    body{margin:0;background:var(--g);color:var(--b)}
+    .app{max-width:460px;margin:0 auto}
+
+    /* ✅ Intro */
+    .intro{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(180deg,#ffd1e7 0%, #fff 55%, #f6f6fa 100%)}
+    .introCard{width:100%;background:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.7);border-radius:24px;padding:18px 16px;box-shadow:0 18px 40px rgba(0,0,0,.08);backdrop-filter: blur(10px)}
+    .rHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .rBadge{display:inline-block;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid #ffe0ef;color:#ff4fa3;font-weight:900;font-size:12px}
+    .rStamp{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,79,163,.14);border:1px solid rgba(255,79,163,.25);color:#ff4fa3;font-weight:1000;font-size:12px;letter-spacing:.04em}
+    .rTitle{margin:12px 0 6px;font-size:26px;line-height:1.12}
+    .rSub{margin:0 0 14px;color:#666;font-size:14px}
+    .rDash{height:1px;background:repeating-linear-gradient(90deg,#f0d3e3 0 8px, transparent 8px 14px);margin:12px 0}
+    .rRows{display:flex;flex-direction:column;gap:8px}
+    .rRow{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:16px;border:1px solid #ffe0ef;background:rgba(255,255,255,.7);font-weight:800;color:#444}
+    .introBtn{width:100%;border:0;background:var(--p);color:#fff;border-radius:18px;padding:14px 12px;font-weight:900;font-size:15px}
+    .introLink{margin-top:10px;width:100%;border:0;background:transparent;color:#888;font-size:12px;text-decoration:underline}
+
+    .dash{padding:14px 14px 92px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    header h1{font-size:18px;margin:0}
+    header button#addBtn{border:0;background:var(--p);color:#fff;padding:10px 12px;border-radius:12px;font-weight:900}
+    .hLeft{display:flex;gap:10px;align-items:center}
+    .hSub{margin-top:2px;font-size:12px;color:#888}
+    .iconBtn{border:1px solid #eee;background:#fff;border-radius:12px;padding:8px 10px;font-weight:900;line-height:1}
+
+    .card{background:#fff;border-radius:18px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.06);margin:10px 0}
+    .calHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .calHead button{border:1px solid #eee;background:#fff;border-radius:12px;padding:6px 10px}
+    #monthTxt{font-weight:900}
+    .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:12px;color:#888;margin:6px 2px}
+    .dow span{text-align:center}
+    .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:4px 2px}
+    .d{height:42px;border-radius:14px;background:#fff;border:1px solid #eee;display:flex;align-items:center;justify-content:center;position:relative;font-weight:900}
+    .d.off{opacity:.35}
+    .d.sel{border-color:var(--p);box-shadow:0 0 0 3px rgba(255,79,163,.12)}
+    .dot{position:absolute;bottom:6px;width:6px;height:6px;border-radius:50%;background:var(--p)}
+
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .stat{padding:10px;border:1px solid #eee;border-radius:16px}
+    .k{font-size:12px;color:#777}
+    .v{font-size:16px;font-weight:900;margin-top:4px}
+    .subK{margin-top:6px;font-size:12px;color:#888}
+
+    .graph{grid-column:1/3}
+    .graphHead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+    .graphYear{font-size:12px;color:#999;font-weight:900}
+    .graphWrap{margin-top:8px;border:1px solid #f0f0f2;border-radius:14px;padding:8px;background:#fff}
+    .graphHint{margin-top:8px;font-size:11px;color:#999}
+
+    .secHead{display:flex;justify-content:space-between;align-items:baseline}
+    .t{font-weight:900}
+    .hint{font-size:12px;color:#888}
+    .list{margin-top:8px;display:flex;flex-direction:column;gap:8px}
+    .item{border:1px solid #eee;border-radius:16px;padding:10px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .item b{display:block}
+    .sub{color:#666;font-size:13px}
+    .del{border:0;background:#fff;color:#999}
+    .thumb{width:46px;height:46px;border-radius:12px;object-fit:cover;border:1px solid #eee;flex:0 0 auto;cursor:pointer}
+    .empty{margin-top:10px;color:#888;font-size:13px;display:none}
+    .actions{display:flex;gap:8px;align-items:center}
+    .editBtn{border:1px solid #ffd0e6;background:#fff;color:#ff4fa3;border-radius:12px;padding:8px 10px;font-weight:1000}
+
+    .sheetBg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;z-index:120}
+    .sheet{background:#fff;width:100%;max-width:460px;margin:0 auto;border-radius:22px 22px 0 0;padding:12px;max-height:92dvh;overflow:auto}
+    .sheetTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;position:sticky;top:0;background:#fff;padding-bottom:8px}
+    .sheetTop button{border:0;background:#fff;font-size:18px}
+    label{display:block;font-size:12px;color:#666;margin:10px 0}
+    input,select,textarea{width:100%;padding:10px;border-radius:14px;border:1px solid #eee;background:#fff}
+    .sheetBtns{display:flex;gap:10px;margin-top:12px}
+    .sheetBtns button{flex:1;border-radius:16px;padding:12px;border:0;font-weight:900}
+    .ghost{background:#f2f2f6}
+    .pink{background:var(--p);color:#fff}
+
+    .photoHint{margin-top:6px;font-size:11px;color:#999}
+    .photoPreview{margin-top:10px}
+    .photoStrip{display:flex;gap:10px;overflow:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
+    .phCard{position:relative;flex:0 0 auto;scroll-snap-align:start}
+    .phCard img{width:64px;height:64px;border-radius:16px;object-fit:cover;border:1px solid #eee}
+    .phDel{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:999px;border:0;background:#fff;box-shadow:0 10px 22px rgba(0,0,0,.18);font-weight:1000}
+
+    .imgModalBg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:80}
+    .imgModal{position:relative;max-width:460px;width:100%}
+    .imgModal img{width:100%;border-radius:18px;background:#fff}
+    .imgClose{position:absolute;top:-10px;right:-6px;border:0;background:#fff;border-radius:999px;width:40px;height:40px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:18px}
+
+    .drawerBg{position:fixed;inset:0;background:rgba(0,0,0,.25);display:none;z-index:70}
+    .drawer{position:absolute;top:0;left:0;height:100%;width:min(86vw,360px);background:#fff;border-radius:0 18px 18px 0;padding:12px;box-shadow:0 18px 50px rgba(0,0,0,.22);transform:translateX(-105%);transition:.22s ease;overflow:auto}
+    .drawerBg.open{display:block}
+    .drawerBg.open .drawer{transform:translateX(0)}
+    .drawerTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .drawerFoot{padding:10px 4px 14px;color:#999;font-size:12px}
+
+    .acc{display:flex;flex-direction:column;gap:10px}
+    .accBtn{width:100%;display:flex;justify-content:space-between;align-items:center;border:1px solid #eee;background:#fff;border-radius:16px;padding:12px 12px;font-weight:1000}
+    .accBtn .chev{color:#999}
+    .accBtn.open .chev{transform:rotate(180deg)}
+    .accPanel{display:none}
+    .accPanel.open{display:block}
+    .setCard{border:1px solid #eee;border-radius:16px;padding:10px;margin-top:8px}
+    .setRow{margin:8px 0}
+    .setLabel{display:block;font-size:12px;color:#777;margin-bottom:6px}
+    .setInput{padding:10px;border-radius:14px;border:1px solid #eee}
+    .setTa{width:100%;border:1px solid #eee;border-radius:14px;padding:10px}
+    .setBtn{margin-top:8px;width:100%;border:0;background:var(--p);color:#fff;border-radius:14px;padding:12px;font-weight:900}
+    .setHint{font-size:12px;color:#888;margin:0 0 8px}
+    .toggle{display:flex;gap:10px;align-items:center;font-size:14px;color:#333;margin:10px 0}
+    .toggle input{width:18px;height:18px}
+
+    .receiptBox{border:1px dashed #f0c2db;background:linear-gradient(180deg, #fff 0%, #fff7fb 100%);border-radius:16px;padding:12px}
+    .receiptTop{display:flex;justify-content:space-between;align-items:baseline}
+    .rTitleSmall{font-weight:1000;letter-spacing:.12em;font-size:12px;color:#ff4fa3}
+    .rSub2{font-size:11px;color:#888;font-weight:700}
+    .rLine{height:1px;background:repeating-linear-gradient(90deg,#f0d3e3 0 8px, transparent 8px 14px);margin:10px 0}
+    .rCols{display:grid;grid-template-columns:1fr 88px 120px;gap:8px;font-size:11px;color:#888;font-weight:800;margin-bottom:6px}
+    .rCols .mid{text-align:center}
+    .right{text-align:right}
+    .items{display:flex;flex-direction:column;gap:8px}
+    .itemRow{display:grid;grid-template-columns:1fr 88px 120px 30px;gap:8px;align-items:center}
+    .itemRow input,.itemRow select{padding:10px;border-radius:14px;border:1px solid #eee;background:#fff;font-size:14px}
+    .itemRow select{text-align:center}
+    .itemDel{width:30px;height:34px;border-radius:12px;border:1px solid #eee;background:#fff;color:#999;font-weight:900}
+    .addItem{width:100%;margin-top:10px;border:1px solid #ffd0e6;background:#fff;border-radius:14px;padding:10px;font-weight:900;color:#ff4fa3}
+    .rTotal{display:flex;justify-content:space-between;font-weight:1000}
+
+    .receiptPreviewWrap{margin-top:10px}
+    .previewHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .miniPink{border:0;background:rgba(255,79,163,.14);color:#ff4fa3;border-radius:12px;padding:8px 10px;font-weight:1000}
+    .receiptPreview{border:1px solid #eee;border-radius:16px;padding:14px;background:#fff;font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+    .pvTop{display:flex;justify-content:space-between;align-items:baseline}
+    .pvTitle{font-weight:1000;letter-spacing:.08em}
+    .pvMeta{font-size:11px;color:#777}
+    .pvDash{height:1px;background:repeating-linear-gradient(90deg,#e8e8ee 0 8px, transparent 8px 14px);margin:10px 0}
+    .pvRow{display:flex;justify-content:space-between;gap:8px}
+    .pvCols{font-size:11px;color:#777;font-weight:900}
+    .pvItem{font-size:13px;padding:4px 0}
+    .pvTotal{font-weight:1000}
+
+    .detailBg{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;align-items:flex-end;z-index:90}
+    .detail{background:#fff;width:100%;max-width:460px;margin:0 auto;border-radius:22px 22px 0 0;padding:12px;max-height:90dvh;overflow:auto}
+    .detailTop{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;padding-bottom:8px}
+    .detailDate{font-weight:1000;font-size:14px;margin:8px 2px 12px}
+    .detailPhotos{margin:0 0 12px}
+    .car{display:flex;gap:10px;overflow:auto;scroll-snap-type:x mandatory}
+    .car img{flex:0 0 100%;max-width:100%;height:220px;object-fit:cover;border-radius:18px;border:1px solid #eee;scroll-snap-align:start}
+    .dots{display:flex;gap:6px;justify-content:center;margin-top:8px}
+    .dot2{width:6px;height:6px;border-radius:50%;background:#ddd}
+    .dot2.on{background:var(--p)}
+
+    /* ✅ 탭바 */
+    .tabBar{
+      position:fixed;left:50%;transform:translateX(-50%);
+      bottom:14px;width:min(460px, calc(100% - 24px));
+      background:#fff;border:1px solid #eee;border-radius:18px;
+      display:grid;grid-template-columns:1fr 1fr 1fr; /* ✅ 3탭으로 변경 */
+      box-shadow:0 18px 40px rgba(0,0,0,.12);
+      z-index:65;overflow:hidden
+    }
+    .tabBtn{
+      border:0;background:#fff;padding:12px 10px;
+      display:flex;gap:8px;align-items:center;justify-content:center;
+      font-weight:1000;color:#777
+    }
+    .tabBtn.on{color:var(--p);background:rgba(255,79,163,.08)}
+    .tabIco{font-size:16px}
+
+    /* ✅ 분석 UI */
+    .anaTop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .anaTitle{font-weight:1000;font-size:15px}
+    .anaSub{font-size:12px;color:#888;margin-top:4px}
+    .anaPill{padding:6px 10px;border-radius:999px;border:1px solid #ffe0ef;color:#ff4fa3;font-weight:1000;font-size:12px}
+    .anaTotal{margin-top:10px;border:1px solid #eee;border-radius:16px;padding:12px}
+    .anaProg{margin-top:10px}
+    .bar{height:10px;border-radius:999px;background:#f3f3f7;overflow:hidden}
+    .fill{height:100%;background:var(--p);border-radius:999px}
+    .anaHint{margin-top:8px;font-size:12px;color:#888}
+    .catList{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+    .catRow{border:1px solid #eee;border-radius:16px;padding:10px}
+    .catTop{display:flex;justify-content:space-between;align-items:baseline}
+    .catName{font-weight:1000}
+    .catWon{font-weight:1000;color:#333}
+    .catBar{margin-top:8px;height:10px;border-radius:999px;background:#f3f3f7;overflow:hidden}
+    .catFill{height:100%;background:rgba(255,79,163,.65);border-radius:999px}
+
+    /* ✅ 월별 리포트 영수증 모달 (연핑크 배경) */
+    .mReportBg{
+      position:fixed;inset:0;background:rgba(0,0,0,.38);
+      display:none;align-items:center;justify-content:center;
+      padding:16px;z-index:130;
+    }
+    .mReport{
+      width:100%;max-width:420px;border-radius:18px;
+      border:1px dashed #f0c2db;
+      background:linear-gradient(180deg,#ffe6f1 0%, #fff3f9 100%);
+      padding:14px;
+      box-shadow:0 18px 50px rgba(0,0,0,.18);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+    .mTop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+    .mTitle{font-weight:1000;letter-spacing:.08em}
+    .mMeta{font-size:11px;color:#777;font-weight:900}
+    .mDash{height:1px;background:repeating-linear-gradient(90deg,#f0c2db 0 8px, transparent 8px 14px);margin:10px 0}
+    .mRow{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+    .mKey{color:#666;font-weight:900}
+    .mVal{font-weight:1000}
+    .mHint{margin-top:8px;font-size:11px;color:#888}
+
+    /* ✅ 버킷리스트 UI(HTML만: 동작 X) */
+    .bucketHead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+    .bucketTitle{font-weight:1000;font-size:18px;margin:0}
+    .bucketSub{font-size:12px;color:#888;font-weight:900}
+    .bucketAdd{display:flex;gap:10px;align-items:center}
+    .bucketAdd input{flex:1;border-radius:18px;padding:14px 14px;border:1px solid #eee;background:#fff}
+    .bucketAdd button{border:0;background:var(--p);color:#fff;border-radius:18px;padding:14px 16px;font-weight:1000;min-width:74px}
+    .bucketList{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+    .bRow{border:1px solid #eee;border-radius:18px;padding:14px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+    .bLeft{display:flex;gap:12px;align-items:flex-start;min-width:0}
+    .bChk{width:24px;height:24px;border:2px solid #777;border-radius:4px;flex:0 0 auto;margin-top:4px}
+    .bTxt{min-width:0}
+    .bName{font-weight:1000;margin:0}
+    .bHint{margin:4px 0 0;color:#777;font-size:13px;font-weight:800}
+    .bRight{display:flex;flex-direction:column;gap:10px;align-items:flex-end;flex:0 0 auto}
+    .bPhotoBtn{border:1px solid #ffd0e6;background:#fff;color:#ff4fa3;border-radius:999px;padding:10px 14px;font-weight:1000}
+    .bDel{border:0;background:transparent;color:#999;font-weight:900}
+    .bucketFoot{margin-top:10px;color:#999;font-size:12px;font-weight:900;line-height:1.4}
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- ✅ Intro -->
+    <section id="intro" class="intro intro-r1">
+      <div class="introCard">
+        <div class="rHead">
+          <span class="rBadge">COUPLE BUDGET</span>
+          <span class="rStamp">PAID</span>
+        </div>
+
+        <h1 class="rTitle">DATE RECEIPT</h1>
+        <p class="rSub">Track dates • Control spend • Save for wedding</p>
+
+        <div class="rDash"></div>
+
+        <div class="rRows">
+          <div class="rRow"><span>Calendar logs</span><span>✔</span></div>
+          <div class="rRow"><span>Receipt items</span><span>✔</span></div>
+          <div class="rRow"><span>Monthly analysis</span><span>✔</span></div>
+        </div>
+
+        <div class="rDash"></div>
+
+        <button id="startBtn" class="introBtn">Start</button>
+        <button id="skipForever" class="introLink">Hide intro next time</button>
+      </div>
+    </section>
+
+    <!-- ✅ Main -->
+    <section id="dash" class="dash" style="display:none;">
+      <header>
+        <div class="hLeft">
+          <button id="menuBtn" class="iconBtn" aria-label="메뉴">☰</button>
+          <div>
+            <h1>Our Calendar logs</h1>
+            <div id="coupleSub" class="hSub"></div>
+          </div>
+        </div>
+        <button id="addBtn">+ 기록</button>
+      </header>
+
+      <!-- ✅ TAB 1: 기록 화면 -->
+      <div id="tabCalendar">
+        <section class="card">
+          <div class="calHead">
+            <button id="pm" type="button">‹</button>
+            <div id="monthTxt"></div>
+            <button id="nm" type="button">›</button>
+          </div>
+          <div class="dow">
+            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+          </div>
+          <div id="cal" class="cal"></div>
+        </section>
+
+        <section class="card stats">
+          <div class="stat">
+            <div class="k">이번 달 데이트</div>
+            <div class="v" id="sCount">0</div>
+            <div class="subK" id="goalLine" style="display:none;">목표: <b id="goalN">0</b>회</div>
+          </div>
+
+          <div class="stat">
+            <div class="k">이번 달 총 지출</div>
+            <div class="v" id="sSum">0원</div>
+            <div class="subK" id="budgetLine" style="display:none;">예산: <b id="budgetN">0</b>원</div>
+          </div>
+
+          <div class="stat graph">
+            <div class="graphHead">
+              <div class="k">올해 월별 데이트 비용 추이</div>
+              <div class="graphYear" id="graphYear">—</div>
+            </div>
+            <div id="graphWrap" class="graphWrap"></div>
+            <div class="graphHint">* 그래프에서 월을 누르면 월간 리포트가 떠요</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="secHead">
+            <div class="t" id="dayTitle">오늘 기록</div>
+            <div class="hint">달력 날짜를 눌러 확인</div>
+          </div>
+          <div id="list" class="list"></div>
+          <div id="empty" class="empty">선택한 날짜에 기록이 없어요.</div>
+        </section>
+      </div>
+
+      <!-- ✅ TAB 2: 분석 화면 -->
+      <div id="tabAnalytics" style="display:none;">
+        <section class="card">
+          <div class="anaTop">
+            <div>
+              <div class="anaTitle" id="anaMonthTitle">이번 달 분석</div>
+              <div class="anaSub">이번 달 [카테고리별 소비]를 확인해요</div>
+            </div>
+            <div class="anaPill" id="anaYM">—</div>
+          </div>
+
+          <div class="anaTotal">
+            <div class="k">이번 달 총 지출</div>
+            <div class="v" id="anaTotal">0원</div>
+            <div class="anaProg" id="anaBudgetLine" style="display:none;">
+              <div class="bar">
+                <div class="fill" id="anaFill" style="width:0%"></div>
+              </div>
+              <div class="anaHint" id="anaBudgetHint">예산 대비 0%</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="secHead" style="margin-bottom:6px;">
+            <div class="t">카테고리별 소비</div>
+            <div class="hint">이번 달 합계</div>
+          </div>
+          <div id="catList" class="catList"></div>
+        </section>
+      </div>
+
+      <div id="tabBucket" style="display:none;">
+        <section class="card">
+          <div class="bucketHead">
+            <h2 class="bucketTitle">데이트 버킷리스트</h2>
+            <div class="bucketSub">하고 싶은 것 / 가고 싶은 곳</div>
+          </div>
+
+          <div class="bucketAdd">
+            <input type="text" id="bucketIn" placeholder="예: 벚꽃 보러 가기 🌸">
+            <button type="button" onclick="addBucket()">추가</button>
+          </div>
+
+          <div id="bucketList" class="bucketList">
+            </div>
+
+          <div class="bucketFoot">
+            * 항목을 누르면 완료 체크(취소선)가 됩니다. <br>
+            * '사진' 버튼으로 추억 사진을 등록할 수 있어요.
+          </div>
+        </section>
+      </div>
+
+      <!-- ✅ Bottom Tab Bar -->
+      <nav class="tabBar">
+        <button class="tabBtn on" id="tabBtnCal" type="button">
+          <span class="tabIco">📅</span>
+          <span>기록</span>
+        </button>
+        <button class="tabBtn" id="tabBtnAna" type="button">
+          <span class="tabIco">📊</span>
+          <span>분석</span>
+        </button>
+        <button class="tabBtn" id="tabBtnBucket" type="button">
+          <span class="tabIco">🧾</span>
+          <span>버킷</span>
+        </button>
+      </nav>
+
+      <!-- Sheet -->
+      <div class="sheetBg" id="bg">
+        <div class="sheet">
+          <div class="sheetTop">
+            <b id="sheetTitle">데이트 기록 추가</b>
+            <button id="x" type="button">✕</button>
+          </div>
+
+          <label>날짜
+            <input type="date" id="fDate" required>
+          </label>
+
+          <label>장소
+            <select id="fArea"></select>
+          </label>
+
+          <div class="receiptBox">
+            <div class="receiptTop">
+              <div class="rTitleSmall">RECEIPT</div>
+              <div class="rSub2" id="rSub">—</div>
+            </div>
+
+            <div class="rLine"></div>
+
+            <div class="rCols">
+              <span>항목</span>
+              <span class="mid">태그</span>
+              <span class="right">금액</span>
+            </div>
+
+            <div id="items" class="items"></div>
+
+            <button type="button" id="addItem" class="addItem">+ 항목 추가</button>
+
+            <div class="rLine"></div>
+
+            <div class="rTotal">
+              <span>TOTAL</span>
+              <span class="right" id="totalTxt">0원</span>
+            </div>
+          </div>
+
+          <label>메모(선택)
+            <input id="fNote" maxlength="25" placeholder="예: 파스타 맛집 성공!">
+          </label>
+
+          <label>사진(선택)
+            <input type="file" id="fPhoto" accept="image/*" multiple>
+            <div class="photoHint">업로드한 사진은 이 브라우저에만 저장돼요</div>
+            <div id="photoPreview" class="photoPreview" style="display:none;">
+              <div id="photoStrip" class="photoStrip"></div>
+            </div>
+          </label>
+
+          <div class="receiptPreviewWrap">
+            <div class="previewHead">
+              <b>영수증 미리보기</b>
+              <button type="button" id="saveReceiptImg" class="miniPink">이미지 저장</button>
+            </div>
+            <div id="receiptPreview" class="receiptPreview">
+              <div class="pvTop">
+                <div class="pvTitle">DATE RECEIPT</div>
+                <div class="pvMeta" id="pvMeta">—</div>
+              </div>
+              <div class="pvDash"></div>
+              <div class="pvRow pvCols">
+                <span>항목(태그)</span><span class="right">금액</span>
+              </div>
+              <div id="pvItems"></div>
+              <div class="pvDash"></div>
+              <div class="pvRow pvTotal">
+                <span>TOTAL</span><span class="right" id="pvTotal">0원</span>
+              </div>
+            </div>
+            <div class="photoHint">* 이미지 저장은 현재 화면의 영수증을 PNG로 저장해요</div>
+          </div>
+
+          <div class="sheetBtns">
+            <button class="ghost" id="cancel" type="button">취소</button>
+            <button class="pink" id="saveBtn" type="button">저장</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Modal -->
+      <div class="imgModalBg" id="imgBg">
+        <div class="imgModal">
+          <button id="imgClose" class="imgClose" type="button">✕</button>
+          <img id="imgView" alt="사진 보기">
+        </div>
+      </div>
+
+      <!-- Detail Modal -->
+      <div class="detailBg" id="detailBg">
+        <div class="detail">
+          <div class="detailTop">
+            <b id="detailTitle">기록 상세</b>
+            <button id="detailClose" class="iconBtn" aria-label="닫기" type="button">✕</button>
+          </div>
+
+          <div class="detailDate" id="detailDate">—</div>
+
+          <div class="detailPhotos" id="detailPhotos" style="display:none;">
+            <div class="car" id="car"></div>
+            <div class="dots" id="dots"></div>
+          </div>
+
+          <div class="detailReceipt" id="detailReceipt">
+            <div class="receiptPreview">
+              <div class="pvTop">
+                <div class="pvTitle">DATE RECEIPT</div>
+                <div class="pvMeta" id="dMeta">—</div>
+              </div>
+              <div class="pvDash"></div>
+              <div class="pvRow pvCols">
+                <span>항목(태그)</span><span class="right">금액</span>
+              </div>
+              <div id="dItems"></div>
+              <div class="pvDash"></div>
+              <div class="pvRow pvTotal">
+                <span>TOTAL</span><span class="right" id="dTotal">0원</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ Month Report Receipt Modal -->
+      <div class="mReportBg" id="mReportBg">
+        <div class="mReport" id="mReport" role="dialog" aria-modal="true" aria-label="월간 소비 리포트">
+          <div class="mTop">
+            <div class="mTitle">MONTHLY REPORT</div>
+            <div class="mMeta" id="mMeta">—</div>
+          </div>
+          <div class="mDash"></div>
+          <div class="mRow"><span class="mKey">TOTAL</span><span class="mVal" id="mTotal">0원</span></div>
+          <div class="mRow" style="margin-top:6px;"><span class="mKey">TOP CATEGORY</span><span class="mVal" id="mTopCat">—</span></div>
+          <div class="mRow" style="margin-top:6px;"><span class="mKey">MEET COUNT</span><span class="mVal" id="mMeet">0회</span></div>
+          <div class="mDash"></div>
+          <div class="mHint">* 바깥 화면을 누르면 닫혀요</div>
+        </div>
+      </div>
+
+      <!-- Drawer -->
+      <div class="drawerBg" id="drawerBg">
+        <aside class="drawer" id="drawer">
+          <div class="drawerTop">
+            <b>설정</b>
+            <button id="drawerClose" class="iconBtn" aria-label="닫기" type="button">✕</button>
+          </div>
+
+          <div class="acc">
+            <button class="accBtn" data-acc="a1" type="button">
+              <span>목표 & 예산</span><span class="chev">⌄</span>
+            </button>
+            <div class="accPanel" id="a1">
+              <div class="setCard">
+                <div class="setRow">
+                  <label class="setLabel">이번 달 목표 데이트(회)</label>
+                  <input id="setGoal" type="number" min="0" step="1" class="setInput" placeholder="예: 4">
+                </div>
+                <div class="setRow">
+                  <label class="setLabel">이번 달 데이트 예산(원)</label>
+                  <input id="setBudget" type="text" inputmode="numeric" class="setInput" placeholder="예: 300,000">
+                </div>
+                <button id="saveGoals" class="setBtn" type="button">저장</button>
+              </div>
+            </div>
+
+            <button class="accBtn" data-acc="a2" type="button">
+              <span>커플 프로필</span><span class="chev">⌄</span>
+            </button>
+            <div class="accPanel" id="a2">
+              <div class="setCard">
+                <div class="setRow">
+                  <label class="setLabel">이름(왼쪽)</label>
+                  <input id="setNameA" class="setInput" placeholder="예: 다현">
+                </div>
+                <div class="setRow">
+                  <label class="setLabel">이름(오른쪽)</label>
+                  <input id="setNameB" class="setInput" placeholder="예: ○○">
+                </div>
+                <div class="setRow">
+                  <label class="setLabel">사귄 날짜</label>
+                  <input id="setStartDate" type="date" class="setInput">
+                </div>
+                <button id="saveProfile" class="setBtn" type="button">저장</button>
+              </div>
+            </div>
+
+            <button class="accBtn" data-acc="a3" type="button">
+              <span>장소 목록 편집</span><span class="chev">⌄</span>
+            </button>
+            <div class="accPanel" id="a3">
+              <div class="setCard">
+                <div class="setHint">한 줄에 하나씩. 저장하면 “기록 추가”의 장소 선택에 반영돼요.</div>
+                <textarea id="setAreas" class="setTa" rows="8"></textarea>
+                <button id="saveAreas" class="setBtn" type="button">저장</button>
+              </div>
+            </div>
+
+            <button class="accBtn" data-acc="a4" type="button">
+              <span>표시 옵션</span><span class="chev">⌄</span>
+            </button>
+            <div class="accPanel" id="a4">
+              <div class="setCard">
+                <label class="toggle">
+                  <input type="checkbox" id="optDots">
+                  <span>달력 점(●) 표시</span>
+                </label>
+                <label class="toggle">
+                  <input type="checkbox" id="optThumbs">
+                  <span>기록 썸네일(사진) 표시</span>
+                </label>
+                <label class="toggle">
+                  <input type="checkbox" id="optHideCost">
+                  <span>리스트에서 비용 숨기기</span>
+                </label>
+                <button id="saveOpts" class="setBtn" type="button">저장</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="drawerFoot">※ 설정도 이 브라우저(localStorage)에 저장돼요</div>
+        </aside>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const $ = (s)=>document.querySelector(s);
+
+    const LOG_KEY="couple_date_logs_v2";
+    const INTRO_KEY="couple_intro_hide_v1";
+    const SET_KEY="couple_settings_v1";
+    const AREA_KEY="couple_area_list_v1";
+
+    const TAGS = ["식사","카페","교통","문화","쇼핑","기타"];
+
+    let logs = JSON.parse(localStorage.getItem(LOG_KEY) || "[]");
+
+    let settings = JSON.parse(localStorage.getItem(SET_KEY) || "{}");
+    settings.monthGoal = settings.monthGoal ?? 0;
+    settings.monthBudget = settings.monthBudget ?? 0;
+    settings.nameA = settings.nameA ?? "";
+    settings.nameB = settings.nameB ?? "";
+    settings.startDate = settings.startDate ?? "";
+    settings.optDots = settings.optDots ?? true;
+    settings.optThumbs = settings.optThumbs ?? true;
+    settings.optHideCost = settings.optHideCost ?? false;
+
+    const defaultAreas = [
+      "강남/서초","잠실/송파","성수/서울숲","홍대/연남(마포)","이태원/용산","광화문/종로",
+      "여의도(영등포)","한남/압구정","망원/합정","건대/군자","신촌/이대","기타(직접메모)"
+    ];
+    let areaList = JSON.parse(localStorage.getItem(AREA_KEY) || "null") || defaultAreas;
+
+    let selected = todayStr();
+    let view = new Date(); view.setDate(1);
+
+    let editingId = null;
+    let currentPhotos = [];
+
+    // Intro
+    const hideIntro = localStorage.getItem(INTRO_KEY)==="1";
+    if(hideIntro){
+      $("#intro").style.display="none";
+      $("#dash").style.display="block";
+    }
+    $("#startBtn").onclick=()=>{
+      $("#intro").style.display="none";
+      $("#dash").style.display="block";
+      render();
+    };
+    $("#skipForever").onclick=()=>{
+      localStorage.setItem(INTRO_KEY,"1");
+      $("#intro").style.display="none";
+      $("#dash").style.display="block";
+      render();
+    };
+
+    // Tabs
+    $("#tabBtnCal").onclick=()=>setTab("cal");
+    $("#tabBtnAna").onclick=()=>setTab("ana");
+    $("#tabBtnBucket").onclick=()=>setTab("bucket");
+
+    function setTab(which){
+      const cal = $("#tabCalendar");
+      const ana = $("#tabAnalytics");
+      const buc = $("#tabBucket");
+
+      const b1 = $("#tabBtnCal");
+      const b2 = $("#tabBtnAna");
+      const b3 = $("#tabBtnBucket");
+
+      // reset
+      cal.style.display="none";
+      ana.style.display="none";
+      buc.style.display="none";
+      b1.classList.remove("on");
+      b2.classList.remove("on");
+      b3.classList.remove("on");
+
+      if(which==="ana"){
+        ana.style.display="block";
+        b2.classList.add("on");
+        renderAnalytics();
+      }else if(which==="bucket"){
+        buc.style.display="block";
+        b3.classList.add("on");
+      }else{
+        cal.style.display="block";
+        b1.classList.add("on");
+      }
+    }
+
+    function todayStr(){ return new Date().toISOString().slice(0,10); }
+    function fmtWon(n){ return (n||0).toLocaleString("ko-KR")+"원"; }
+    function inMonth(dateStr, y, m){ const d=new Date(dateStr); return d.getFullYear()===y && d.getMonth()===m; }
+    function byDate(dateStr){ return logs.filter(x=>x.date===dateStr).sort((a,b)=>b.id-a.id); }
+    function uniqueDays(arr){ return new Set(arr.map(x=>x.date)).size; }
+    function escapeHtml(s){ return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+    const onlyDigits = (v)=> (v||"").replace(/[^\d]/g,"");
+    const comma = (digits)=> digits ? digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
+     
+
+    function getLogPhotos(x){
+      if(Array.isArray(x.photos)) return x.photos;
+      if(x.photo) return [x.photo];
+      return [];
+    }
+
+    function normalizeItems(x){
+      if(Array.isArray(x.items)){
+        return x.items.map(it=>({ name: it.name||"", cost:+it.cost||0, tag: it.tag || "기타" }));
+      }
+      if(typeof x.cost==="number" && x.cost>0){
+        return [{name:"데이트", cost:x.cost, tag:"기타"}];
+      }
+      return [];
+    }
+
+    function getLogCost(x){
+      const items = normalizeItems(x);
+      return items.reduce((a,it)=>a+(+it.cost||0),0);
+    }
+
+    function persist(){
+      localStorage.setItem(LOG_KEY, JSON.stringify(logs));
+      localStorage.setItem(SET_KEY, JSON.stringify(settings));
+      localStorage.setItem(AREA_KEY, JSON.stringify(areaList));
+    }
+
+    function renderAreasSelect(){
+      $("#fArea").innerHTML = areaList.map(a=>`<option>${escapeHtml(a)}</option>`).join("");
+    }
+
+    function renderHeaderSub(){
+      const a = settings.nameA?.trim();
+      const b = settings.nameB?.trim();
+      const s = settings.startDate;
+      let line = "";
+      if(a || b) line += `${a||"우리"} ♥ ${b||"커플"}`;
+      if(s) line += (line? " · ":"") + `D+${calcDplus(s)}`;
+      $("#coupleSub").textContent = line;
+      $("#coupleSub").style.display = line ? "block" : "none";
+    }
+    function calcDplus(dateStr){
+      const start = new Date(dateStr);
+      const now = new Date();
+      start.setHours(0,0,0,0); now.setHours(0,0,0,0);
+      const diff = Math.floor((now-start)/86400000) + 1;
+      return isFinite(diff) ? diff : "";
+    }
+
+    // ✅ 월간 리포트 (그래프에서 월 클릭)
+    function openMonthReport(year, monthIdx){
+      const monthLogs = logs.filter(x=>inMonth(x.date, year, monthIdx));
+      const total = monthLogs.reduce((a,x)=>a+getLogCost(x),0);
+      const meet = uniqueDays(monthLogs);
+
+      // 카테고리 TOP
+      const sumBy = {};
+      TAGS.forEach(t=>sumBy[t]=0);
+      monthLogs.forEach(log=>{
+        normalizeItems(log).forEach(it=>{
+          const tag = TAGS.includes(it.tag) ? it.tag : "기타";
+          sumBy[tag] += (+it.cost||0);
+        });
+      });
+      let topCat = "—";
+      if(monthLogs.length){
+        const entries = Object.entries(sumBy).sort((a,b)=>b[1]-a[1]);
+        if(entries[0] && entries[0][1] > 0) topCat = entries[0][0];
+        else topCat = "—";
+      }
+
+      $("#mMeta").textContent = `${year}.${String(monthIdx+1).padStart(2,"0")}`;
+      $("#mTotal").textContent = fmtWon(total);
+      $("#mTopCat").textContent = topCat;
+      $("#mMeet").textContent = `${meet}회`;
+
+      $("#mReportBg").style.display = "flex";
+    }
+    function closeMonthReport(){
+      $("#mReportBg").style.display = "none";
+    }
+    $("#mReportBg").addEventListener("click",(e)=>{
+      if(e.target.id==="mReportBg") closeMonthReport();
+    });
+
+    function renderYearGraph(year){
+      const sums = Array.from({length:12}, ()=>0);
+      logs.forEach(x=>{
+        const d=new Date(x.date);
+        if(d.getFullYear()===year){
+          sums[d.getMonth()] += getLogCost(x);
+        }
+      });
+
+      const maxRaw = Math.max(0, ...sums);
+      const step100k = 100000;
+      const top = Math.max(step100k, Math.ceil(maxRaw/step100k)*step100k);
+      const mid = Math.round((top/2)/step100k)*step100k;
+
+      const W=340, H=150;
+      const padL=65, padR=12, padT=16;
+      const innerW = W - padL - padR;
+      const innerH = H - 44;
+      const stepX = innerW / 11;
+
+      const pts = sums.map((v,i)=>{
+        const x = padL + stepX*i;
+        const y = padT + innerH - (v/top)*innerH;
+        return [x,y];
+      });
+
+      const poly = pts.map(p=>p.join(",")).join(" ");
+      const circles = pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.4" fill="var(--p)"></circle>`).join("");
+      const bars = sums.map((v,i)=>{
+        const x=padL+stepX*i-6, h=(v/top)*innerH, y=padT+innerH-h;
+        return `<rect x="${x}" y="${y}" width="12" height="${h}" rx="6" fill="rgba(255,79,163,.16)"></rect>`;
+      }).join("");
+
+      const months=[1,2,3,4,5,6,7,8,9,10,11,12];
+      const xLabels = months.map((m,i)=>`<text x="${padL+stepX*i}" y="${H-14}" text-anchor="middle" font-size="10.5" fill="#999" font-weight="800">${m}</text>`).join("");
+
+      const yTop = padT;
+      const yMid = padT + innerH/2;
+      const yBot = padT + innerH;
+
+      const grid = `
+        <line x1="${padL}" x2="${W-padR}" y1="${yTop}" y2="${yTop}" stroke="#f1f1f4" stroke-width="1"/>
+        <line x1="${padL}" x2="${W-padR}" y1="${yMid}" y2="${yMid}" stroke="#f1f1f4" stroke-width="1"/>
+        <line x1="${padL}" x2="${W-padR}" y1="${yBot}" y2="${yBot}" stroke="#f1f1f4" stroke-width="1"/>
+      `;
+
+      const yLabelBg = `<rect x="0" y="${padT-10}" width="${padL-6}" height="${innerH+20}" fill="#fff"/>`;
+
+      const yLabels = `
+        <text x="${padL-10}" y="${yTop+4}" text-anchor="end" font-size="11.5" fill="#666" font-weight="1000">${top.toLocaleString("ko-KR")}</text>
+        <text x="${padL-10}" y="${yMid+4}" text-anchor="end" font-size="11.5" fill="#777" font-weight="1000">${mid.toLocaleString("ko-KR")}</text>
+        <text x="${padL-10}" y="${yBot+4}" text-anchor="end" font-size="11.5" fill="#777" font-weight="1000">0</text>
+      `;
+
+      // ✅ 월 클릭 영역(투명) — 1~12월 각각 클릭 가능
+      const hitRects = sums.map((_,i)=>{
+        const x0 = (i===0) ? padL- stepX/2 : (padL + stepX*i - stepX/2);
+        const w  = stepX;
+        const y0 = padT-6;
+        const h  = innerH+30;
+        return `<rect data-m="${i}" x="${x0}" y="${y0}" width="${w}" height="${h}" fill="transparent" style="cursor:pointer" />`;
+      }).join("");
+
+      $("#graphYear").textContent = `${year}년`;
+      $("#graphWrap").innerHTML = `
+        <svg id="yearGraphSvg" viewBox="0 0 ${W} ${H}" width="100%" height="160" aria-label="월별 데이트 비용 그래프">
+          ${yLabelBg}
+          ${grid}
+          ${yLabels}
+          ${bars}
+          <polyline points="${poly}" fill="none" stroke="var(--p)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          ${circles}
+          ${xLabels}
+          ${hitRects}
+        </svg>`;
+
+      // ✅ 클릭 이벤트(월간 리포트 오픈)
+      const svg = $("#yearGraphSvg");
+      svg.onclick = (e)=>{
+        const t = e.target;
+        const m = t?.getAttribute?.("data-m");
+        if(m===null || m===undefined) return;
+        const mi = +m;
+        if(!Number.isFinite(mi)) return;
+        openMonthReport(year, mi);
+      };
+    }
+
+    function formatDayTitle(dateStr){
+      const d = new Date(dateStr);
+      if(!isFinite(d)) return `${dateStr} 소비`;
+      return `${d.getMonth()+1}월 ${d.getDate()}일 소비`;
+    }
+
+    function render(){
+      renderAreasSelect();
+      renderHeaderSub();
+
+      const y=view.getFullYear(), m=view.getMonth();
+      $("#monthTxt").textContent = `${y}년 ${m+1}월`;
+
+      const firstDow=new Date(y,m,1).getDay();
+      const last=new Date(y,m+1,0).getDate();
+      const prevLast=new Date(y,m,0).getDate();
+      const cells=[];
+      for(let i=0;i<42;i++){
+        const dayNum=i-firstDow+1;
+        let dStr="", label="", off=false;
+        if(dayNum<=0){ off=true; label=prevLast+dayNum; dStr=new Date(y,m-1,label).toISOString().slice(0,10); }
+        else if(dayNum>last){ off=true; label=dayNum-last; dStr=new Date(y,m+1,label).toISOString().slice(0,10); }
+        else { label=dayNum; dStr=new Date(y,m,label).toISOString().slice(0,10); }
+        const has=logs.some(x=>x.date===dStr);
+        const showDot=settings.optDots && has;
+        cells.push(`<button class="d ${off?"off":""} ${dStr===selected?"sel":""}" data-date="${dStr}" type="button">
+          ${label}${showDot?'<i class="dot"></i>':""}
+        </button>`);
+      }
+      $("#cal").innerHTML=cells.join("");
+
+      const thisMonth=logs.filter(x=>inMonth(x.date,y,m));
+      const count=uniqueDays(thisMonth);
+      const sum=thisMonth.reduce((a,x)=>a+getLogCost(x),0);
+      $("#sCount").textContent=`${count}회`;
+      $("#sSum").textContent=fmtWon(sum);
+
+      if((settings.monthGoal||0)>0){ $("#goalLine").style.display="block"; $("#goalN").textContent=settings.monthGoal; }
+      else $("#goalLine").style.display="none";
+
+      if((settings.monthBudget||0)>0){ $("#budgetLine").style.display="block"; $("#budgetN").textContent=(settings.monthBudget||0).toLocaleString("ko-KR"); }
+      else $("#budgetLine").style.display="none";
+
+      renderYearGraph(y);
+
+      const items=byDate(selected);
+      $("#dayTitle").textContent = formatDayTitle(selected);
+      $("#empty").style.display=items.length?"none":"block";
+
+      $("#list").innerHTML = items.map(x=>{
+        const cost = getLogCost(x);
+        const costText = settings.optHideCost ? "" : fmtWon(cost);
+        const noteText = x.note ? ` · ${escapeHtml(x.note)}` : "";
+        const photos = getLogPhotos(x);
+        const thumb = (settings.optThumbs && photos[0]) ? `<img class="thumb" data-img="${photos[0]}" src="${photos[0]}" alt="데이트 사진">` : "";
+        const subLine = settings.optHideCost ? (x.note?escapeHtml(x.note):"") : `${costText}${noteText}`;
+
+        return `
+          <div class="item" data-open="${x.id}">
+            <div style="min-width:0;">
+              <b>${escapeHtml(x.area)}</b>
+              <div class="sub">${subLine}</div>
+            </div>
+            ${thumb}
+            <div class="actions">
+              <button class="editBtn" data-edit="${x.id}" type="button">수정</button>
+              <button class="del" data-del="${x.id}" type="button">삭제</button>
+            </div>
+          </div>`;
+      }).join("");
+
+      $("#cal").querySelectorAll(".d").forEach(btn=>{
+        btn.onclick=()=>{ selected=btn.dataset.date; render(); };
+      });
+
+      $("#list").querySelectorAll("[data-del]").forEach(btn=>{
+        btn.onclick=(e)=>{
+          e.stopPropagation();
+          const id=+btn.dataset.del;
+          logs = logs.filter(x=>x.id!==id);
+          persist(); render(); renderAnalytics();
+        };
+      });
+
+      $("#list").querySelectorAll("[data-edit]").forEach(btn=>{
+        btn.onclick=(e)=>{
+          e.stopPropagation();
+          const id=+btn.dataset.edit;
+          const log = logs.find(x=>x.id===id);
+          if(!log) return;
+          openSheet("edit", log);
+        };
+      });
+
+      $("#list").querySelectorAll("[data-img]").forEach(img=>{
+        img.onclick=(e)=>{
+          e.stopPropagation();
+          $("#imgView").src = img.dataset.img;
+          $("#imgBg").style.display="flex";
+        };
+      });
+
+      $("#list").querySelectorAll("[data-open]").forEach(row=>{
+        row.onclick=()=>{
+          const id = +row.dataset.open;
+          const log = logs.find(x=>x.id===id);
+          if(!log) return;
+          openDetail(log);
+        };
+      });
+
+      syncDrawerInputs();
+    }
+
+    function renderAnalytics(){
+      const y=view.getFullYear(), m=view.getMonth();
+      $("#anaYM").textContent = `${y}.${String(m+1).padStart(2,"0")}`;
+      $("#anaMonthTitle").textContent = `${m+1}월 소비 분석`;
+
+      const thisMonth=logs.filter(x=>inMonth(x.date,y,m));
+      const total=thisMonth.reduce((a,x)=>a+getLogCost(x),0);
+      $("#anaTotal").textContent = fmtWon(total);
+
+      const budget = +settings.monthBudget || 0;
+      if(budget>0){
+        $("#anaBudgetLine").style.display="block";
+        const pct = Math.min(100, Math.round((total/budget)*100));
+        $("#anaFill").style.width = pct + "%";
+        $("#anaBudgetHint").textContent = `예산 ${budget.toLocaleString("ko-KR")}원 대비 ${pct}%`;
+      }else{
+        $("#anaBudgetLine").style.display="none";
+      }
+
+      const sumBy = {};
+      TAGS.forEach(t=>sumBy[t]=0);
+
+      thisMonth.forEach(log=>{
+        normalizeItems(log).forEach(it=>{
+          const tag = TAGS.includes(it.tag) ? it.tag : "기타";
+          sumBy[tag] += (+it.cost||0);
+        });
+      });
+
+      const max = Math.max(1, ...Object.values(sumBy));
+      $("#catList").innerHTML = TAGS.map(tag=>{
+        const v = sumBy[tag] || 0;
+        const w = Math.round((v/max)*100);
+        return `
+          <div class="catRow">
+            <div class="catTop">
+              <div class="catName">${tag}</div>
+              <div class="catWon">${fmtWon(v)}</div>
+            </div>
+            <div class="catBar"><div class="catFill" style="width:${w}%"></div></div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function openDetail(log){
+      $("#detailBg").style.display="flex";
+      $("#detailTitle").textContent = `${log.area || "기록"} 상세`;
+      $("#detailDate").textContent = log.date || "-";
+
+      const photos = getLogPhotos(log);
+      if(photos.length){
+        $("#detailPhotos").style.display="block";
+        $("#car").innerHTML = photos.map(src=>`<img src="${src}" alt="데이트 사진">`).join("");
+        $("#dots").innerHTML = photos.map((_,i)=>`<span class="dot2 ${i===0?"on":""}"></span>`).join("");
+        const car = $("#car");
+        const dots = Array.from($("#dots").children);
+        car.onscroll = ()=>{
+          const idx = Math.round(car.scrollLeft / car.clientWidth);
+          dots.forEach((d,i)=>d.classList.toggle("on", i===idx));
+        };
+      }else{
+        $("#detailPhotos").style.display="none";
+        $("#car").innerHTML="";
+        $("#dots").innerHTML="";
+      }
+
+      const items = normalizeItems(log);
+      const total = items.reduce((a,it)=>a+(+it.cost||0),0);
+      $("#dMeta").textContent = `${log.date || "-"} · ${log.area || ""}`;
+      $("#dTotal").textContent = fmtWon(total);
+      $("#dItems").innerHTML = items.length
+        ? items.map(it=>`
+            <div class="pvRow pvItem">
+              <span>${escapeHtml(it.name||"항목")} <span style="color:#999">(${escapeHtml(it.tag||"기타")})</span></span>
+              <span class="right">${fmtWon(it.cost||0)}</span>
+            </div>
+          `).join("")
+        : `<div class="pvRow pvItem"><span style="color:#999">항목이 없어요</span><span></span></div>`;
+    }
+    function closeDetail(){ $("#detailBg").style.display="none"; }
+    $("#detailClose").onclick=closeDetail;
+    $("#detailBg").addEventListener("click",(e)=>{ if(e.target.id==="detailBg") closeDetail(); });
+
+    function openSheet(mode="add", log=null){
+      $("#bg").style.display="flex";
+
+      editingId = (mode==="edit" && log) ? log.id : null;
+      $("#sheetTitle").textContent = editingId ? "데이트 기록 수정" : "데이트 기록 추가";
+      $("#saveBtn").textContent = editingId ? "수정 저장" : "저장";
+
+      $("#fDate").value = (log?.date || selected || todayStr());
+      $("#fNote").value = (log?.note || "");
+      $("#fArea").value = (log?.area || areaList[0] || "");
+
+      currentPhotos = getLogPhotos(log||{});
+      $("#fPhoto").value = "";
+      renderPhotoStrip();
+
+      $("#items").innerHTML = "";
+      const initItems = (log ? normalizeItems(log) : []);
+      if(initItems.length){
+        initItems.forEach(it=> addItemRow(it.name, it.tag, it.cost));
+      }else{
+        addItemRow("식사", "식사", "");
+        addItemRow("카페", "카페", "");
+      }
+      updateReceipt();
+    }
+
+    const closeSheet=()=>{ $("#bg").style.display="none"; editingId=null; };
+
+    $("#addBtn").onclick=()=>openSheet("add");
+    $("#bg").addEventListener("click",(e)=>{ if(e.target.id==="bg") closeSheet(); });
+    $("#x").onclick=closeSheet;
+    $("#cancel").onclick=closeSheet;
+
+    $("#pm").onclick=()=>{ view.setMonth(view.getMonth()-1); render(); renderAnalytics(); };
+    $("#nm").onclick=()=>{ view.setMonth(view.getMonth()+1); render(); renderAnalytics(); };
+
+    $("#fPhoto").addEventListener("change", async (e)=>{
+      const files = Array.from(e.target.files || []);
+      if(!files.length) return;
+      for(const file of files){
+        if(file.size > 1.2*1024*1024){
+          alert("사진 용량이 커요! 1.2MB 이하 사진만 올려주세요.");
+          continue;
+        }
+        const dataUrl = await fileToDataURL(file);
+        currentPhotos.push(dataUrl);
+      }
+      renderPhotoStrip();
+    });
+
+    function renderPhotoStrip(){
+      const wrap = $("#photoPreview");
+      const strip = $("#photoStrip");
+      if(!currentPhotos.length){
+        wrap.style.display="none";
+        strip.innerHTML="";
+        return;
+      }
+      wrap.style.display="block";
+      strip.innerHTML = currentPhotos.map((src,idx)=>`
+        <div class="phCard">
+          <img src="${src}" alt="업로드 사진 ${idx+1}">
+          <button type="button" class="phDel" data-phdel="${idx}">×</button>
+        </div>
+      `).join("");
+
+      strip.querySelectorAll("[data-phdel]").forEach(btn=>{
+        btn.onclick=()=>{
+          const i = +btn.dataset.phdel;
+          currentPhotos.splice(i,1);
+          renderPhotoStrip();
+        };
+      });
+    }
+
+    function fileToDataURL(file){
+      return new Promise((res,rej)=>{
+        const r=new FileReader();
+        r.onload=()=>res(r.result);
+        r.onerror=rej;
+        r.readAsDataURL(file);
+      });
+    }
+
+    $("#imgClose").onclick=()=> $("#imgBg").style.display="none";
+    $("#imgBg").addEventListener("click",(e)=>{ if(e.target.id==="imgBg") $("#imgBg").style.display="none"; });
+
+    function addItemRow(name="", tag="기타", costDigits=""){
+      const row = document.createElement("div");
+      row.className = "itemRow";
+      row.innerHTML = `
+        <input class="itName" placeholder="예: 파스타" maxlength="16" value="${escapeHtml(name)}">
+        <select class="itTag">${TAGS.map(t=>`<option ${t===tag?"selected":""}>${t}</option>`).join("")}</select>
+        <input class="itCost" inputmode="numeric" placeholder="예: 35,000" value="${(costDigits||costDigits===0)?comma(String(costDigits)):""}">
+        <button type="button" class="itemDel" aria-label="삭제">×</button>
+      `;
+      $("#items").appendChild(row);
+
+      const nameEl = row.querySelector(".itName");
+      const tagEl  = row.querySelector(".itTag");
+      const costEl = row.querySelector(".itCost");
+      const delBtn = row.querySelector(".itemDel");
+
+      costEl.addEventListener("input", ()=>{
+        costEl.value = comma(onlyDigits(costEl.value));
+        updateReceipt();
+      });
+      nameEl.addEventListener("input", updateReceipt);
+      tagEl.addEventListener("change", updateReceipt);
+      delBtn.onclick=()=>{ row.remove(); updateReceipt(); };
+    }
+
+    $("#addItem").onclick=()=>{ addItemRow("", "기타", ""); updateReceipt(); };
+    $("#fDate").addEventListener("change", updateReceipt);
+    $("#fArea").addEventListener("change", updateReceipt);
+
+    function collectItems(){
+      const rows = Array.from(document.querySelectorAll("#items .itemRow"));
+      const items = rows.map(r=>{
+        const name = (r.querySelector(".itName").value||"").trim();
+        const tag  = (r.querySelector(".itTag").value||"기타").trim();
+        const cost = +onlyDigits(r.querySelector(".itCost").value||"0");
+        return {name, tag, cost};
+      }).filter(it => it.name || it.cost>0);
+      return items;
+    }
+
+    function updateReceipt(){
+      const date = $("#fDate").value || selected || todayStr();
+      const area = $("#fArea").value || "";
+      $("#rSub").textContent = `${date} · ${area}`;
+      $("#pvMeta").textContent = `${date} · ${area}`;
+
+      const items = collectItems();
+      const total = items.reduce((a,it)=>a+(+it.cost||0),0);
+
+      $("#totalTxt").textContent = fmtWon(total);
+      $("#pvTotal").textContent = fmtWon(total);
+
+      $("#pvItems").innerHTML = items.length
+        ? items.map(it=>`
+            <div class="pvRow pvItem">
+              <span>${escapeHtml(it.name||"항목")} <span style="color:#999">(${escapeHtml(it.tag||"기타")})</span></span>
+              <span class="right">${fmtWon(it.cost||0)}</span>
+            </div>
+          `).join("")
+        : `<div class="pvRow pvItem"><span style="color:#999">항목을 입력해 주세요</span><span></span></div>`;
+    }
+
+    $("#saveReceiptImg").onclick = async ()=>{
+      updateReceipt();
+      const node = $("#receiptPreview");
+      try{
+        const canvas = await html2canvas(node, {scale: 2, backgroundColor: "#ffffff"});
+        const a = document.createElement("a");
+        const date = ($("#fDate").value || todayStr()).replaceAll("-","");
+        a.download = `date_receipt_${date}.png`;
+        a.href = canvas.toDataURL("image/png");
+        a.click();
+      }catch(e){
+        alert("이미지 저장에 실패했어요. (브라우저 정책/용량 문제일 수 있어요)");
+      }
+    };
+
+    $("#saveBtn").onclick=()=>{
+      const date=$("#fDate").value || todayStr();
+      const area=$("#fArea").value;
+      const note=$("#fNote").value.trim();
+      const items = collectItems();
+      const total = items.reduce((a,it)=>a+(+it.cost||0),0);
+
+      if(!date || !area) return;
+      if(items.length===0 || total<=0){
+        alert("항목과 금액을 1개 이상 입력해줘!");
+        return;
+      }
+
+      const payload = {
+        date, area,
+        items,
+        cost: total,
+        note,
+        photos: currentPhotos,
+        photo: currentPhotos[0]||""
+      };
+
+      if(editingId){
+        const idx = logs.findIndex(x=>x.id===editingId);
+        if(idx>-1) logs[idx] = { ...logs[idx], ...payload };
+      }else{
+        logs.push({ id: Date.now(), ...payload });
+      }
+
+      persist();
+      selected=date;
+      closeSheet();
+      render();
+      renderAnalytics();
+    };
+
+    function openDrawer(){ $("#drawerBg").classList.add("open"); }
+    function closeDrawer(){ $("#drawerBg").classList.remove("open"); }
+    $("#menuBtn").onclick=openDrawer;
+    $("#drawerClose").onclick=closeDrawer;
+    $("#drawerBg").addEventListener("click",(e)=>{ if(e.target.id==="drawerBg") closeDrawer(); });
+
+    document.querySelectorAll(".accBtn").forEach(btn=>{
+      btn.onclick=()=>{
+        const id = btn.dataset.acc;
+        const panel = document.getElementById(id);
+        const isOpen = panel.classList.contains("open");
+        document.querySelectorAll(".accPanel").forEach(p=>p.classList.remove("open"));
+        document.querySelectorAll(".accBtn").forEach(b=>b.classList.remove("open"));
+        if(!isOpen){
+          panel.classList.add("open");
+          btn.classList.add("open");
+        }
+      };
+    });
+
+    function syncDrawerInputs(){
+      $("#setGoal").value = settings.monthGoal || "";
+      $("#setBudget").value = settings.monthBudget ? comma(String(settings.monthBudget)) : "";
+      $("#setNameA").value = settings.nameA || "";
+      $("#setNameB").value = settings.nameB || "";
+      $("#setStartDate").value = settings.startDate || "";
+      $("#optDots").checked = !!settings.optDots;
+      $("#optThumbs").checked = !!settings.optThumbs;
+      $("#optHideCost").checked = !!settings.optHideCost;
+      $("#setAreas").value = (areaList||[]).join("\n");
+    }
+
+    $("#setBudget").addEventListener("input", ()=>{
+      const d = onlyDigits($("#setBudget").value);
+      $("#setBudget").value = comma(d);
+    });
+
+    $("#saveGoals").onclick=()=>{
+      settings.monthGoal = +($("#setGoal").value||0);
+      settings.monthBudget = +onlyDigits($("#setBudget").value||"0");
+      persist(); render(); renderAnalytics(); closeDrawer();
+    };
+
+    $("#saveProfile").onclick=()=>{
+      settings.nameA = ($("#setNameA").value||"").trim();
+      settings.nameB = ($("#setNameB").value||"").trim();
+      settings.startDate = ($("#setStartDate").value||"").trim();
+      persist(); render(); closeDrawer();
+    };
+
+    $("#saveAreas").onclick=()=>{
+      const lines = ($("#setAreas").value||"").split("\n").map(s=>s.trim()).filter(Boolean);
+      areaList = lines.length ? lines : defaultAreas.slice();
+      persist(); render(); closeDrawer();
+    };
+
+    $("#saveOpts").onclick=()=>{
+      settings.optDots = $("#optDots").checked;
+      settings.optThumbs = $("#optThumbs").checked;
+      settings.optHideCost = $("#optHideCost").checked;
+      persist(); render(); closeDrawer();
+    };
+    
+
+    // init
+    render();
+    renderAnalytics();
+    
+  </script>
+</body>
+</html>
