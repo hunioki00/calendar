@@ -672,6 +672,11 @@
     // ✅ 버킷리스트 데이터
     let buckets = JSON.parse(localStorage.getItem(BUCKET_KEY) || "[]");
 
+    // ✅ (수정) IME/중복 입력 방지용 상태값
+    let bucketComposing = false;
+    let lastBucketAddAt = 0;
+    let lastBucketText = "";
+
     // Intro
     const hideIntro = localStorage.getItem(INTRO_KEY)==="1";
     if(hideIntro){
@@ -1512,6 +1517,12 @@ function todayStr(){ return toLocalISO(new Date()); }
       const input = $("#bucketIn");
       const txt = (input.value || "").trim();
       if(!txt) return;
+
+      // ✅ (수정) 초단위 중복(조합/이중 Enter) 방지
+      const now = Date.now();
+      if(txt === lastBucketText && (now - lastBucketAddAt) < 400) return;
+      lastBucketText = txt; lastBucketAddAt = now;
+
       buckets.push({
         id: Date.now(),
         text: txt,
@@ -1524,11 +1535,18 @@ function todayStr(){ return toLocalISO(new Date()); }
       renderBucket();
     };
 
-    // 엔터로도 추가
-    let bucketComposing = false;
-    let lastBucketAddAt = 0;
-    let lastBucketText = "";
+    // ✅ (수정) 한글 IME 조합 상태 추적
+    $("#bucketIn").addEventListener("compositionstart", ()=>{ bucketComposing = true; });
+    $("#bucketIn").addEventListener("compositionend",   ()=>{ bucketComposing = false; });
 
+    // 엔터로도 추가 (✅ IME 조합 중 Enter는 무시)
+    $("#bucketIn").addEventListener("keydown",(e)=>{
+      if(e.key==="Enter"){
+        if(bucketComposing || e.isComposing) return; // ✅ (수정) 핵심
+        e.preventDefault();
+        window.addBucket();
+      }
+    });
 
     // init
     render();
