@@ -1525,12 +1525,10 @@ function todayStr(){ return toLocalISO(new Date()); }
     };
 
     // 엔터로도 추가
-    $("#bucketIn").addEventListener("keydown",(e)=>{
-      if(e.key==="Enter"){
-        e.preventDefault();
-        window.addBucket();
-      }
-    });
+    let bucketComposing = false;
+    let lastBucketAddAt = 0;
+    let lastBucketText = "";
+
 
     // init
     render();
