@@ -73,7 +73,7 @@
     .editBtn{border:1px solid #ffd0e6;background:#fff;color:#ff4fa3;border-radius:12px;padding:8px 10px;font-weight:1000}
 
     .sheetBg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;z-index:120}
-    .sheet{background:#fff;width:100%;max-width:460px;margin:0 auto;border-radius:22px 22px 0 0;padding:12px;max-height:92dvh;overflow:auto}
+    .sheet{background:#fff;width:100%;max-width:460px;margin:0 auto;border-radius:22px 22px 0 0;padding:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom));max-height:92dvh;overflow:auto}
     .sheetTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;position:sticky;top:0;background:#fff;padding-bottom:8px}
     .sheetTop button{border:0;background:#fff;font-size:18px}
     label{display:block;font-size:12px;color:#666;margin:10px 0}
@@ -160,13 +160,14 @@
 
     /* ✅ 탭바 */
     .tabBar{
-      position:fixed;left:50%;transform:translateX(-50%);
-      bottom:14px;width:min(460px, calc(100% - 24px));
-      background:#fff;border:1px solid #eee;border-radius:18px;
-      display:grid;grid-template-columns:1fr 1fr 1fr;
-      box-shadow:0 18px 40px rgba(0,0,0,.12);
-      z-index:65;overflow:hidden
-    }
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(14px + env(safe-area-inset-bottom));width:min(460px, calc(100% - 24px));
+  background:#fff;border:1px solid #eee;border-radius:18px;
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  box-shadow:0 18px 40px rgba(0,0,0,.12);
+  z-index:65;overflow:hidden
+}
+
     .tabBtn{
       border:0;background:#fff;padding:12px 10px;
       display:flex;gap:8px;align-items:center;justify-content:center;
@@ -723,7 +724,12 @@
       }
     }
 
-    function todayStr(){ return new Date().toISOString().slice(0,10); }
+    function toLocalISO(d){
+  const tz = d.getTimezoneOffset()*60000;
+  return new Date(d.getTime()-tz).toISOString().slice(0,10);
+}
+function todayStr(){ return toLocalISO(new Date()); }
+
     function fmtWon(n){ return (n||0).toLocaleString("ko-KR")+"원"; }
     function inMonth(dateStr, y, m){ const d=new Date(dateStr); return d.getFullYear()===y && d.getMonth()===m; }
     function byDate(dateStr){ return logs.filter(x=>x.date===dateStr).sort((a,b)=>b.id-a.id); }
@@ -919,9 +925,10 @@
       for(let i=0;i<42;i++){
         const dayNum=i-firstDow+1;
         let dStr="", label="", off=false;
-        if(dayNum<=0){ off=true; label=prevLast+dayNum; dStr=new Date(y,m-1,label).toISOString().slice(0,10); }
-        else if(dayNum>last){ off=true; label=dayNum-last; dStr=new Date(y,m+1,label).toISOString().slice(0,10); }
-        else { label=dayNum; dStr=new Date(y,m,label).toISOString().slice(0,10); }
+        if(dayNum<=0){ off=true; label=prevLast+dayNum; dStr=toLocalISO(new Date(y,m-1,label)); }
+        else if(dayNum>last){ off=true; label=dayNum-last; dStr=toLocalISO(new Date(y,m+1,label)); }
+        else { label=dayNum; dStr=toLocalISO(new Date(y,m,label)); }
+
         const has=logs.some(x=>x.date===dStr);
         const showDot=settings.optDots && has;
         cells.push(`<button class="d ${off?"off":""} ${dStr===selected?"sel":""}" data-date="${dStr}" type="button">
